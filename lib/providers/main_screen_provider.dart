@@ -1,6 +1,5 @@
 // lib/providers/main_screen_provider.dart
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // Impor untuk Haptic Feedback
 
 /// Provider untuk mengelola state dari MainScreen.
 /// Termasuk index halaman aktif dan kontroler untuk PageView.
@@ -29,9 +28,6 @@ class MainScreenProvider extends ChangeNotifier {
 
   /// Dipanggil ketika item di NavigationBar di-tap.
   void onNavBarTap(int index) {
-    // Tambahkan getaran halus saat di-tap
-    HapticFeedback.lightImpact();
-
     _pageController.animateToPage(
       index,
       duration: const Duration(milliseconds: 300),

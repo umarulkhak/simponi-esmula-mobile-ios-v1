@@ -1,282 +1,145 @@
+// lib/views/profile_page.dart
 import 'package:flutter/material.dart';
+import 'package:simponi_v_01/models/student_model.dart';
+import 'package:simponi_v_01/widgets/custom_card.dart';
 
-// Ubah menjadi StatefulWidget untuk Animasi
-class ProfilePage extends StatefulWidget {
+class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
 
   @override
-  State<ProfilePage> createState() => _ProfilePageState();
-}
-
-class _ProfilePageState extends State<ProfilePage>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late List<Animation<double>> _staggeredAnimations;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1000),
-    );
-
-    // Animasi staggered untuk 3 bagian: Info Siswa, Info Wali, Info Akun
-    _staggeredAnimations = List.generate(3, (index) {
-      return Tween<double>(begin: 0.0, end: 1.0).animate(
-        CurvedAnimation(
-          parent: _controller,
-          curve: Interval(0.1 * index, 0.6 + 0.1 * index, curve: Curves.easeOutCubic),
-        ),
-      );
-    });
-
-    _controller.forward();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  // Helper untuk menerapkan animasi fade + slide
-  Widget _buildStaggered(int index, Widget child) {
-    return FadeTransition(
-      opacity: _staggeredAnimations[index],
-      child: SlideTransition(
-        position: Tween<Offset>(
-          begin: const Offset(0.0, 0.1),
-          end: Offset.zero,
-        ).animate(_staggeredAnimations[index]),
-        child: child,
-      ),
-    );
-  }
-
-  @override
   Widget build(BuildContext context) {
+    // Data dummy siswa
+    final student = Student(
+      name: 'Budi Santoso',
+      nis: '181923001',
+      className: 'SMP Kelas IX-A',
+      photoUrl: '', // Kosongkan untuk menggunakan placeholder
+    );
+
+    final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: colorScheme.background,
-      // Menggunakan CustomScrollView untuk App Bar yang dinamis
-      body: CustomScrollView(
-        slivers: [
-          // 1. AppBar yang bisa membesar
-          SliverAppBar(
-            backgroundColor: colorScheme.surface, // Latar belakang header
-            foregroundColor: colorScheme.onSurface, // Teks & ikon di header
-            elevation: 1,
-            pinned: true, // Tetap terlihat saat di-scroll
-            stretch: true, // Efek 'stretch' saat ditarik
-            expandedHeight: 280.0, // Tinggi saat AppBar besar
-            scrolledUnderElevation: 2.0,
-            title: const Text('Profil Siswa'), // Judul saat AppBar kecil
-            flexibleSpace: FlexibleSpaceBar(
-              background: _ProfileHeader(), // Konten saat AppBar besar
-              stretchModes: const [
-                StretchMode.zoomBackground,
-                StretchMode.fadeTitle,
-              ],
-            ),
-          ),
-
-          // 2. Konten Halaman (Daftar Info)
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate(
-                [
-                  // Bagian Informasi Siswa
-                  _buildStaggered(
-                    0,
-                    _InfoSection(
-                      title: 'Informasi Siswa',
-                      children: [
-                        _InfoTile(
-                          icon: Icons.person_pin_rounded,
-                          label: 'NIS',
-                          value: '2025001',
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Bagian Informasi Wali
-                  _buildStaggered(
-                    1,
-                    _InfoSection(
-                      title: 'Informasi Wali',
-                      children: [
-                        _InfoTile(
-                          icon: Icons.shield_rounded,
-                          label: 'Nama Wali',
-                          value: 'Umul Muffarokhati',
-                        ),
-                        _InfoTile(
-                          icon: Icons.phone_android_rounded,
-                          label: 'No. HP',
-                          value: '085711598638',
-                        ),
-                        _InfoTile(
-                          icon: Icons.alternate_email_rounded,
-                          label: 'Email',
-                          value: 'alikhak24@gmail.com',
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Bagian Aksi Akun
-                  _buildStaggered(
-                    2,
-                    _InfoSection(
-                      title: 'Akun',
-                      children: [
-                        ListTile(
-                          leading: Icon(Icons.logout, color: Colors.red.shade600),
-                          title: Text(
-                            'Keluar',
-                            style: TextStyle(
-                              color: Colors.red.shade600,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          onTap: () {
-                            // Logika untuk logout
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Berhasil keluar...')),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+      appBar: AppBar(
+        title: const Text('Profil Siswa'),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(16.0),
+        children: [
+          _buildProfileHeader(context, student, textTheme, colorScheme),
+          const SizedBox(height: 24),
+          _buildInfoCard(student, textTheme),
+          const SizedBox(height: 24),
+          _buildActionButtons(context, colorScheme),
         ],
       ),
     );
   }
-}
 
-// --- WIDGET HEADER PROFIL (UNTUK FLEXIBLE SPACE) ---
-
-class _ProfileHeader extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Padding(
-      padding: const EdgeInsets.only(top: 80.0), // Padding dari status bar + appbar
+  Widget _buildProfileHeader(BuildContext context, Student student, TextTheme textTheme, ColorScheme colorScheme) {
+    return CustomCard(
+      padding: const EdgeInsets.all(24),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Hero(
-            tag: 'studentAvatar', // Tag untuk animasi Hero
-            child: CircleAvatar(
-              radius: 60,
-              backgroundColor: colorScheme.background,
-              backgroundImage: NetworkImage('https://picsum.photos/150/150'),
+          CircleAvatar(
+            radius: 50,
+            backgroundColor: colorScheme.primary.withOpacity(0.1),
+            child: Text(
+              student.name.substring(0, 1),
+              style: TextStyle(
+                fontSize: 48,
+                fontWeight: FontWeight.w600,
+                color: colorScheme.primary,
+              ),
             ),
           ),
           const SizedBox(height: 16),
           Text(
-            'Evans Gemilang',
-            style: textTheme.titleLarge?.copyWith(
-              color: colorScheme.onSurface,
-              fontWeight: FontWeight.bold,
-            ),
+            student.name,
+            style: textTheme.titleLarge,
+            textAlign: TextAlign.center,
           ),
           const SizedBox(height: 4),
           Text(
-            'Kelas 8A – SMP Muhammadiyah Larangan',
-            style: textTheme.bodyMedium?.copyWith(
-              color: Colors.grey.shade600,
-            ),
+            student.className,
+            style: textTheme.bodyMedium?.copyWith(fontSize: 16),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
     );
   }
-}
 
-// --- WIDGET KARTU INFO ---
-
-class _InfoSection extends StatelessWidget {
-  final String title;
-  final List<Widget> children;
-
-  const _InfoSection({required this.title, required this.children});
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
+  Widget _buildInfoCard(Student student, TextTheme textTheme) {
+    return CustomCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            title,
-            style: textTheme.titleMedium
-                ?.copyWith(color: colorScheme.primary, fontSize: 16),
+            'Informasi Dasar',
+            style: textTheme.titleMedium,
           ),
-          const Divider(height: 16),
-          ...children,
+          const Divider(height: 24),
+          _buildInfoRow(
+            icon: Icons.person_outline,
+            label: 'Nama Wali',
+            value: 'Bapak Ahmad',
+          ),
+          const SizedBox(height: 16),
+          _buildInfoRow(
+            icon: Icons.credit_card,
+            label: 'Nomor Induk Siswa (NIS)',
+            value: student.nis,
+          ),
         ],
       ),
     );
   }
-}
 
-// --- WIDGET ITEM INFO (PENGGANTI _buildRow) ---
+  Widget _buildInfoRow({required IconData icon, required String label, required String value}) {
+    return Row(
+      children: [
+        Icon(icon, color: Colors.grey[600], size: 20),
+        const SizedBox(width: 16),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(label, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+            const SizedBox(height: 2),
+            Text(value, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+          ],
+        ),
+      ],
+    );
+  }
 
-class _InfoTile extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-
-  const _InfoTile({
-    required this.icon,
-    required this.label,
-    required this.value,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: Icon(icon, color: colorScheme.primary.withOpacity(0.8)),
-      title: Text(
-        value,
-        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
-      ),
-      subtitle: Text(
-        label,
-        style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
-      ),
+  Widget _buildActionButtons(BuildContext context, ColorScheme colorScheme) {
+    return Column(
+      children: [
+        ElevatedButton.icon(
+          onPressed: () {},
+          icon: const Icon(Icons.payment_outlined),
+          label: const Text('Lihat Rincian SPP'),
+          style: ElevatedButton.styleFrom(
+            minimumSize: const Size(double.infinity, 50),
+            backgroundColor: colorScheme.primary,
+            foregroundColor: colorScheme.onPrimary,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        TextButton.icon(
+          onPressed: () {},
+          icon: const Icon(Icons.logout),
+          label: const Text('Keluar dari Akun'),
+          style: TextButton.styleFrom(
+            minimumSize: const Size(double.infinity, 50),
+            foregroundColor: colorScheme.error,
+          ),
+        ),
+      ],
     );
   }
 }
