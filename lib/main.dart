@@ -153,6 +153,28 @@ class MainScreen extends StatelessWidget {
               backgroundColor: Colors.transparent,
               elevation: 0,
               indicatorColor: colorScheme.primary.withOpacity(0.1),
+
+              // --- PENYESUAIAN VISUAL BARU ---
+              labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+              labelTextStyle: MaterialStateProperty.resolveWith<TextStyle>(
+                (Set<MaterialState> states) {
+                  // Jika item dipilih (selected), buat tebal dan gunakan warna primer
+                  if (states.contains(MaterialState.selected)) {
+                    return TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600, // Bold
+                      color: colorScheme.primary,
+                    );
+                  }
+                  // Jika tidak, gunakan gaya default
+                  return const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  );
+                },
+              ),
+              // ------------------------------------
+              
               destinations: [
                 NavigationDestination(
                   icon: const Icon(Icons.dashboard_outlined),
